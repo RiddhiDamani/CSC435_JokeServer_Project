@@ -1,96 +1,199 @@
 import java.io.*;
+import java.net.Socket;
+import java.util.*;
 
-// Client Code for InetServer Multithreading Assignment
-// Need to change for Joke Server Assignment
+// Client Code for JokeServer Multithreading Assignment
+
 public class JokeClient {
+
     public static void main(String args[]) {
         // Defining variable name for the server name
         String serverName;
+        String user_Name;
+        int jokePosition = 0;
+        int proverbPosition = 0;
+        LinkedList<String> randomOrder = new LinkedList<>();
+        LinkedList<Integer>  listPosition = new LinkedList<>();
+        LinkedList<String> randomJokeDisplay = new LinkedList<>();
+        String uniqueClientID;
+        StringBuilder randomJokeString;
+        LinkedList<String> randomProverbDisplay;
+        StringBuilder randomProverbString;
 
-        if(args.length < 1) {
-            serverName = "localhost";
-        }
-        else {
-            serverName = args[0];
-        }
+        serverName = (args.length < 1) ? "localhost" : args[0];
 
-        // Printing client's start-up message on the terminal
-        System.out.println("Riddhi Damani's Inet Client..1.9. \n");
-        System.out.println("Utilizing Server: " + serverName + ", Port: 1565");
-
-        // Setting 'input' variable to read the Host name or IP address entered by the client.
+        System.out.println("Interaction with : " + serverName + " is in progress, Port: 4545");
         BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
+
+        randomJokeDisplay.add("A");
+        randomJokeDisplay.add("B");
+        randomJokeDisplay.add("C");
+        randomJokeDisplay.add("D");
+
+        Collections.shuffle(randomJokeDisplay);
+
+        randomJokeString = new StringBuilder(randomJokeDisplay.size());
+        for(String joke: randomJokeDisplay){
+            randomJokeString.append(joke);
+        }
+
+        randomOrder.add(randomJokeString.toString());
+
+
+        randomProverbDisplay = new LinkedList<>();
+
+        randomProverbDisplay.add("A");
+        randomProverbDisplay.add("B");
+        randomProverbDisplay.add("C");
+        randomProverbDisplay.add("D");
+
+        Collections.shuffle(randomProverbDisplay);
+
+        randomProverbString = new StringBuilder(randomProverbDisplay.size());
+        for(String joke: randomProverbDisplay){
+            randomProverbString.append(joke);
+        }
+
+        randomOrder.add(randomProverbString.toString());
+
+//        performJokeRandomization();
+//        performProverbRandomization();
+
         try {
-            String name;
+
+            String nextJoke;
+
+            System.out.println("Please enter your name or enter 'quit' to end communication: ");
+            System.out.flush();
+            user_Name = input.readLine();
+            System.out.println("Welcome to a fun session of joke and proverb cycle: " + user_Name);
+            System.out.println("If you would like to receive joke or proverb, please press enter! \n");
+            System.out.flush();
+            uniqueClientID = UUID.randomUUID().toString();
+
+//            generateUUID();
+
             do {
-                // Printing a message on the terminal to request for host name or an IP address
-                System.out.println("Enter a host or an IP address, (quit) to end: ");
-                // Flushes the print stream whenever a new line is written on the terminal
-                System.out.flush();
+                nextJoke = input.readLine();
+                listPosition.clear();
 
-                // Setting the name variable to the value entered by the client
-                name = input.readLine();
+                if(nextJoke.indexOf("quit") < 0 && user_Name.indexOf("quit")<0) {
+                    listPosition = receiveJokeAndProverb(user_Name, uniqueClientID, randomOrder.get(0),
+                            randomOrder.get(1), jokePosition, proverbPosition, serverName);
 
-//                if(name.indexOf("quit") < 0) {
-//                    getRemoteAddress (name, serverName);
-//                }
-            }
-            // Quiting the client connection with the server
-            while (name.indexOf("quit") < 0);
+                    jokePosition = listPosition.get(0);
+                    proverbPosition = listPosition.get(1);
+
+                    if(jokePosition == 4) {
+                        jokePosition = 0;
+                        randomJokeDisplay.clear();
+
+                        for(int i=0;i<randomJokeString.length();i++){
+                            randomJokeDisplay.add(String.valueOf(randomJokeString.charAt(i)));
+                        }
+                        Collections.shuffle(randomJokeDisplay);
+
+
+                        StringBuilder newJokeOrderString = new StringBuilder(randomJokeDisplay.size());
+                        for(String s: randomJokeDisplay){
+                            newJokeOrderString.append(s);
+                        }
+
+                        randomOrder.set(0,newJokeOrderString.toString());
+                    }
+
+                    if(proverbPosition == 4){
+                        proverbPosition=0;
+
+                        randomProverbDisplay.clear();
+
+                        for(int i=0;i<randomProverbString.length();i++){
+                            randomProverbDisplay.add(String.valueOf(randomJokeString.charAt(i)));
+                        }
+                        Collections.shuffle(randomProverbDisplay);
+
+
+                        StringBuilder newProverbOrderString = new StringBuilder(randomProverbDisplay.size());
+                        for(String s: randomProverbDisplay){
+                            newProverbOrderString.append(s);
+                        }
+
+                        randomOrder.set(1,newProverbOrderString.toString());
+                    }
+
+                }
+            } while (nextJoke.indexOf("quit") < 0 && user_Name.indexOf("quit") < 0);
             System.out.println("Cancelled by user request. ");
         }
-        // Input Output Exception handling
         catch (IOException exception) {
             exception.printStackTrace();
         }
     }
 
-//    static void getRemoteAddress(String name, String serverName) {
-//        Socket socket;
-//        BufferedReader fromServer;
-//        PrintStream toServer;
-//        String textFromServer;
+    private static LinkedList<Integer> receiveJokeAndProverb(String user_name, String uniqueClientID,
+                                                             String randomJokeString, String randomProverbString,
+                                                             int jokePosition, int proverbPosition, String serverName)
+    {
+        Socket socket;
+        BufferedReader readFrmServer;
+        PrintStream printToServer;
+        String textFromServer;
+        LinkedList<Integer> indicatorList = new LinkedList<>();
+        indicatorList.clear();
+
+        try{
+            socket = new Socket(serverName, 4545);
+
+            readFrmServer = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            printToServer = new PrintStream(socket.getOutputStream());
+
+            printToServer.println(uniqueClientID);
+            printToServer.println(user_name+":"+randomJokeString+":"+randomProverbString);
+            printToServer.println(jokePosition);
+            printToServer.println(proverbPosition);
+
+            printToServer.flush();
+
+            for(int i=0; i<3; i++) {
+                textFromServer = readFrmServer.readLine();
+                if (textFromServer !=null && i==0) System.out.println(textFromServer);
+                else if (textFromServer != null && i==1) {
+                    jokePosition = Integer.parseInt(textFromServer);
+                    if(jokePosition==4){
+                        System.out.println("Joke Cycle Completed!!!!");
+                        indicatorList.add(jokePosition);
+                    } else{
+                        indicatorList.add(jokePosition);
+                    }
+                } else if (textFromServer != null && i==2) {
+                    proverbPosition = Integer.parseInt(textFromServer);
+                    if(proverbPosition==4){
+                        System.out.println("Proverb Cycle Completed!!!!");
+                        indicatorList.add(proverbPosition);
+                    } else{
+                        indicatorList.add(proverbPosition);
+                    }
+                }
+            }
+
+            socket.close();
+        }
+        catch(IOException ioException) {
+            System.out.println ("Error in the Socket Connection!");
+            ioException.printStackTrace ();
+        }
+
+        return indicatorList;
+    }
+
+//    private static void performJokeRandomization() {
 //
-//        try {
-//            // Open server port connection by selecting the desired port number
-//            socket = new Socket(serverName, 1565);
+//    }
 //
-//            // Creating input stream for the socket.
-//            fromServer = new BufferedReader(new InputStreamReader((socket.getInputStream())));
-//            // Creating output stream for the socket.
-//            toServer = new PrintStream(socket.getOutputStream());
-//
-//            // Passing the server data - IP address or the host name
-//            toServer.println(name);
-//            // Flushes the print stream whenever a new line is written on the terminal
-//            toServer.flush();
-//
-//            // Reading response from the server textFromServer variable and then printing it out.
-//            for(int i = 1; i <= 3; i++) {
-//                textFromServer = fromServer.readLine();
-//                if(textFromServer != null) {
-//                    System.out.println(textFromServer);
-//                }
-//            }
-//            // Closing Socket after transmission of the data
-//            socket.close();
-//        }
-//        // Input Output Exception handling
-//        catch (IOException ioException) {
-//            System.out.println("Socket Error.");
-//            ioException.printStackTrace();
-//        }
+//    private static void performProverbRandomization() {
 //    }
 
-    // String conversion for portability
-//    static String toText (byte ipAddress[]) {
-//        StringBuffer result = new StringBuffer();
-//        for(int i = 0; i < ipAddress.length; i++) {
-//            if(i > 0) result.append(".");
-//            result.append(0xff & ipAddress[i]);
-//        }
-//        //System.out.println("Inside IP Address -Client: " + result);
-//        return result.toString();
+//    private static void generateUUID() {
+//        uniqueClientID = UUID.randomUUID().toString();
 //    }
-
 }

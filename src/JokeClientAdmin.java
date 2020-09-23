@@ -2,7 +2,7 @@ import java.io.*;
 import java.net.Socket;
 
 public class JokeClientAdmin {
-    public static void main(String args[]) throws IOException {
+    public static void main(String args[]) {
 
         String server_name;
         String mode1 = "";
@@ -11,24 +11,30 @@ public class JokeClientAdmin {
 
         server_name = (args.length < 1) ? "localhost" : args[0];
 
-        System.out.println("Connected to : " + server_name + ", Port: 8001");
+        System.out.println("Connected to : " + server_name + ", Port: 5050");
         System.out.println("Interaction in progress..");
         BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
 
         System.out.println("Please press enter key to toggle between Joke Mode and Proverb Mode");
 
-        while (mode1.toLowerCase().contains("quit") == false) {
+        try {
+            while (mode1.toLowerCase().contains("quit") == false) {
 
-            mode1 = input.readLine();
-            if(mode1.toLowerCase().contains("quit") == false) {
-                mode2 = toggleSwitch(server_name);
-                printMessage = mode2.contains("JOKE_MODE") ? "Toggled to Proverb Mode" : "Toggled to Joke Mode";
-                System.out.println(printMessage);
+                mode1 = input.readLine();
+                if(mode1.toLowerCase().contains("quit") == false) {
+                    mode2 = toggleSwitch(server_name);
+                    printMessage = mode2.contains("JOKE_MODE") ? "Toggled to Proverb Mode" : "Toggled to Joke Mode";
+                    System.out.println(printMessage);
+                }
+                else {
+                    System.out.println ("Connection disconnected by the client..");
+                }
             }
-            else {
-                System.out.println ("Connection disconnected by the client..");
-            }
-        } ;
+        }
+        catch (IOException ioException) {
+            ioException.printStackTrace();
+        }
+
     }
 
     private static String toggleSwitch(String server_name) throws IOException {
@@ -37,7 +43,7 @@ public class JokeClientAdmin {
         BufferedReader inputClientAdmin;
         String toggledModeName = "";
 
-        socket = new Socket(server_name, 8001);
+        socket = new Socket(server_name, 5050);
 
         outputClientAdmin = new PrintStream(socket.getOutputStream());
         inputClientAdmin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -46,8 +52,6 @@ public class JokeClientAdmin {
         toggledModeName = inputClientAdmin.readLine();
 
         socket.close();
-
-
         return toggledModeName;
     }
 
@@ -70,7 +74,7 @@ public class JokeClientAdmin {
                         JokeServer.ToggleModeJokeProverb = false;
                         output.println("JOKE_MODE");
                     }
-                    else{
+                    else {
                         System.out.println("Toggled Mode State: Joke Mode");
                         JokeServer.ToggleModeJokeProverb = true;
                         output.println("PROVERB_MODE");
