@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 
 
-// Server Code for InetServer Multithreading Assignment
+// Server Code for JokeServer Multithreading Assignment
 public class JokeServer {
 
     //Toggle between Joke and Proverb Mode
