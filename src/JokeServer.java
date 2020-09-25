@@ -398,9 +398,9 @@ class Worker extends Thread {
         }
 
         proverb2DList = new String[][] {
-                {"W", "PA " + usrName + ": Absence makes the heart grow fonder."},
-                {"X", "PB " + usrName + ": Always put your best foot forward. "},
-                {"Y", "PC " + usrName + ": A ship in the harbor is safe, but that is not what a ship is for."},
-                {"Z", "PD " + usrName + ": Cleanliness is next to Godliness."}};
+                {"W", "PA " + usrName + ": You are creator of your own fairy tale."},
+                {"X", "PB " + usrName + ": Keep fighting for what you want to pursue, you will surely accomplish one day!"},
+                {"Y", "PC " + usrName + ": Being grateful is the secret key of happy life."},
+                {"Z", "PD " + usrName + ": Smart work may be the key to success, but hard work is definitely a SUCCESS!"}};
     }
 }
